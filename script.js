@@ -2,7 +2,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const box = 20;
-const gridSize = canvas.width / box; // 20x20
+const gridCount = canvas.width / box; // 20 cases par ligne/colonne
 
 let snake = [{ x: 9 * box, y: 10 * box }];
 let direction = null;
@@ -14,6 +14,13 @@ let gameOver = false;
 
 document.getElementById("coins").textContent = coins;
 
+// on crée un bouton “Recommencer”
+const restartBtn = document.createElement("button");
+restartBtn.textContent = "🔁 Recommencer";
+restartBtn.style.display = "none";
+restartBtn.onclick = () => location.reload();
+document.body.appendChild(restartBtn);
+
 document.addEventListener("keydown", handleDirection);
 
 function handleDirection(e) {
@@ -24,35 +31,34 @@ function handleDirection(e) {
   else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
 }
 
-// --- FOND NOIR / MARRON CLAIR ---
+// 🎨 FOND EN DAMIER NOIR / MARRON
 function drawGround() {
-  for (let i = 0; i < gridSize; i++) {
-    for (let j = 0; j < gridSize; j++) {
-      ctx.fillStyle = (i + j) % 2 === 0 ? "#1b1b1b" : "#3a2b1a";
-      ctx.fillRect(i * box, j * box, box, box);
+  for (let x = 0; x < gridCount; x++) {
+    for (let y = 0; y < gridCount; y++) {
+      ctx.fillStyle = (x + y) % 2 === 0 ? "#1e1e1e" : "#3c2f1c";
+      ctx.fillRect(x * box, y * box, box, box);
     }
   }
 }
 
-// --- GÉNÉRATION DE POMME ---
+// 🍎 Génère une pomme aléatoirement
 function randomFood() {
   return {
-    x: Math.floor(Math.random() * gridSize) * box,
-    y: Math.floor(Math.random() * gridSize) * box
+    x: Math.floor(Math.random() * gridCount) * box,
+    y: Math.floor(Math.random() * gridCount) * box
   };
 }
 
-// --- DESSIN DU JEU ---
 function draw() {
   if (gameOver) return;
 
   drawGround();
 
-  // pomme
+  // 🍎 pomme
   ctx.fillStyle = "red";
   ctx.fillRect(food.x, food.y, box, box);
 
-  // serpent
+  // 🐍 serpent
   if (equippedColor === "rainbow") {
     snake.forEach((segment, i) => {
       const hue = (i * 40) % 360;
@@ -73,7 +79,13 @@ function draw() {
   if (direction === "RIGHT") headX += box;
   if (direction === "DOWN") headY += box;
 
-  // MANGE POMME
+  // ✅ Autoriser la dernière case avant sortie
+  if (headX < 0 || headY < 0 || headX > canvas.width - box || headY > canvas.height - box) {
+    endGame();
+    return;
+  }
+
+  // 🍏 mange une pomme
   if (headX === food.x && headY === food.y) {
     score++;
     coins += 5;
@@ -87,14 +99,7 @@ function draw() {
 
   const newHead = { x: headX, y: headY };
 
-  // --- COLLISIONS ---
-  if (
-    headX < 0 ||
-    headY < 0 ||
-    headX >= canvas.width ||
-    headY >= canvas.height ||
-    collision(newHead, snake)
-  ) {
+  if (collision(newHead, snake)) {
     endGame();
     return;
   }
@@ -102,31 +107,28 @@ function draw() {
   snake.unshift(newHead);
 }
 
-// --- COLLISION DU CORPS ---
+// 💥 Collision avec le corps
 function collision(head, array) {
   return array.some(s => s.x === head.x && s.y === head.y);
 }
 
-// --- FIN DU JEU ---
+// 🧨 Fin du jeu sans alerte
 function endGame() {
   gameOver = true;
   clearInterval(game);
-  showMessage(`💀 Game Over ! Score : ${score}`);
-  setTimeout(() => {
-    window.location.reload();
-  }, 2000);
-}
 
-// --- MESSAGE À L'ÉCRAN ---
-function showMessage(text) {
-  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-  ctx.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
+  // afficher un overlay semi-transparent
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = "#FFD700";
-  ctx.font = "20px Arial";
+  ctx.font = "22px Arial";
   ctx.textAlign = "center";
-  ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 7);
+  ctx.fillText(`💀 Game Over ! Score : ${score}`, canvas.width / 2, canvas.height / 2);
+
+  restartBtn.style.display = "inline-block";
+  restartBtn.style.marginTop = "15px";
 }
 
-// --- BOUCLE DU JEU (ralentie à 120 ms) ---
+// 🔁 Boucle du jeu (ralentie à 120 ms)
 let game = setInterval(draw, 120);

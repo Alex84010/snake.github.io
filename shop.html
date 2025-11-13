@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Boutique du Snake</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>🛍️ Boutique du Snake</h1>
+  <p>💰 Tes pièces : <span id="coins">0</span></p>
+
+  <div id="shop"></div>
+
+  <button onclick="window.location.href='index.html'">🎮 Revenir au jeu</button>
+
+  <script>
+    const items = [
+      { name: "Vert classique", color: "#00FF00", price: 0 },
+      { name: "Rouge", color: "#FF3333", price: 50 },
+      { name: "Bleu", color: "#3399FF", price: 100 },
+      { name: "Or", color: "#FFD700", price: 200 },
+      { name: "Arc-en-ciel", color: "rainbow", price: 500 }
+    ];
+
+    const coinsSpan = document.getElementById("coins");
+    const shopDiv = document.getElementById("shop");
+    let coins = parseInt(localStorage.getItem("coins")) || 0;
+    let owned = JSON.parse(localStorage.getItem("ownedColors")) || ["#00FF00"];
+    let equipped = localStorage.getItem("equippedColor") || "#00FF00";
+
+    coinsSpan.textContent = coins;
+
+    function renderShop() {
+      shopDiv.innerHTML = "";
+      items.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "shop-item";
+
+        const colorBox = document.createElement("div");
+        colorBox.className = "color-box";
+        colorBox.style.background = item.color === "rainbow"
+          ? "linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)"
+          : item.color;
+
+        const name = document.createElement("span");
+        name.textContent = item.name + " - " + item.price + "💰";
+
+        const btn = document.createElement("button");
+        if (owned.includes(item.color)) {
+          btn.textContent = equipped === item.color ? "Équipé ✅" : "Équiper";
+          btn.onclick = () => {
+            equipped = item.color;
+            localStorage.setItem("equippedColor", item.color);
+            renderShop();
+          };
+        } else {
+          btn.textContent = "Acheter";
+          btn.onclick = () => {
+            if (coins >= item.price) {
+              coins -= item.price;
+              owned.push(item.color);
+              localStorage.setItem("coins", coins);
+              localStorage.setItem("ownedColors", JSON.stringify(owned));
+              localStorage.setItem("equippedColor", item.color);
+              equipped = item.color;
+              renderShop();
+            } else {
+              alert("Pas assez de pièces !");
+            }
+          };
+        }
+
+        div.appendChild(colorBox);
+        div.appendChild(name);
+        div.appendChild(document.createElement("br"));
+        div.appendChild(btn);
+        shopDiv.appendChild(div);
+      });
+      coinsSpan.textContent = coins;
+    }
+
+    renderShop();
+  </script>
+</body>
+</html>

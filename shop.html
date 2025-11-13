@@ -14,13 +14,14 @@
   <button onclick="window.location.href='index.html'">🎮 Revenir au jeu</button>
 
   <script>
-    const items = [
-      { name: "Vert classique", color: "#00FF00", price: 0 },
-      { name: "Rouge", color: "#FF3333", price: 50 },
-      { name: "Bleu", color: "#3399FF", price: 100 },
-      { name: "Or", color: "#FFD700", price: 200 },
-      { name: "Arc-en-ciel", color: "rainbow", price: 500 }
-    ];
+const items = [
+  { name: "Vert (gain +2)", color: "#00FF00", price: 0 },
+  { name: "Rouge (gain +5)", color: "#FF3333", price: 50 },
+  { name: "Bleu (gain +10)", color: "#3399FF", price: 100 },
+  { name: "Or (gain +15)", color: "#FFD700", price: 200 },
+  { name: "Arc-en-ciel (gain +25)", color: "rainbow", price: 500 }
+];
+
 
     const coinsSpan = document.getElementById("coins");
     const shopDiv = document.getElementById("shop");

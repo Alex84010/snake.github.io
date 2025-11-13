@@ -1,7 +1,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let box = 20;
+const box = 20;
 let snake = [{ x: 9 * box, y: 10 * box }];
 let direction = null;
 let food = {
@@ -15,35 +15,55 @@ let equippedColor = localStorage.getItem("equippedColor") || "#00FF00";
 
 document.getElementById("coins").textContent = coins;
 
-document.addEventListener("keydown", directionHandler);
+document.addEventListener("keydown", handleDirection);
 
-function directionHandler(e) {
+function handleDirection(e) {
   if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
   else if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
   else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
   else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
 }
 
-function draw() {
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, 400, 400);
+function drawGrid() {
+  ctx.fillStyle = "#151515";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // food
+  // petit motif pour mieux voir la grille
+  ctx.strokeStyle = "#1f1f1f";
+  for (let i = 0; i < canvas.width / box; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * box, 0);
+    ctx.lineTo(i * box, canvas.height);
+    ctx.stroke();
+  }
+  for (let j = 0; j < canvas.height / box; j++) {
+    ctx.beginPath();
+    ctx.moveTo(0, j * box);
+    ctx.lineTo(canvas.width, j * box);
+    ctx.stroke();
+  }
+}
+
+function draw() {
+  drawGrid();
+
+  // pomme
   ctx.fillStyle = "red";
   ctx.fillRect(food.x, food.y, box, box);
 
-  // snake
+  // serpent
   if (equippedColor === "rainbow") {
-    snake.forEach((s, i) => {
+    snake.forEach((segment, i) => {
       const hue = (i * 40) % 360;
       ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-      ctx.fillRect(s.x, s.y, box, box);
+      ctx.fillRect(segment.x, segment.y, box, box);
     });
   } else {
     ctx.fillStyle = equippedColor;
-    snake.forEach(s => ctx.fillRect(s.x, s.y, box, box));
+    snake.forEach(segment => ctx.fillRect(segment.x, segment.y, box, box));
   }
 
+  // mouvement
   let headX = snake[0].x;
   let headY = snake[0].y;
 
@@ -52,10 +72,10 @@ function draw() {
   if (direction === "RIGHT") headX += box;
   if (direction === "DOWN") headY += box;
 
-  // si mange la pomme
+  // mange une pomme
   if (headX === food.x && headY === food.y) {
     score++;
-    coins += 5; // gagne 5 pièces
+    coins += 5;
     localStorage.setItem("coins", coins);
     document.getElementById("coins").textContent = coins;
     document.getElementById("score").textContent = score;
@@ -73,8 +93,8 @@ function draw() {
   if (
     headX < 0 ||
     headY < 0 ||
-    headX >= 400 ||
-    headY >= 400 ||
+    headX >= canvas.width ||
+    headY >= canvas.height ||
     collision(newHead, snake)
   ) {
     clearInterval(game);
@@ -88,4 +108,5 @@ function collision(head, array) {
   return array.some(s => s.x === head.x && s.y === head.y);
 }
 
-let game = setInterval(draw, 100);
+// 100 ms → 120 ms (−20 % de vitesse)
+let game = setInterval(draw, 120);

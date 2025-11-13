@@ -2,7 +2,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 const box = 20;
-const gridCount = canvas.width / box; // 20 cases par ligne/colonne
+const gridCount = canvas.width / box; // 20x20
 
 let snake = [{ x: 9 * box, y: 10 * box }];
 let direction = null;
@@ -14,14 +14,21 @@ let gameOver = false;
 
 document.getElementById("coins").textContent = coins;
 
-// on crée un bouton “Recommencer”
-const restartBtn = document.createElement("button");
-restartBtn.textContent = "🔁 Recommencer";
+// bouton Recommencer
+const restartBtn = document.getElementById("restart-btn");
 restartBtn.style.display = "none";
 restartBtn.onclick = () => location.reload();
-document.body.appendChild(restartBtn);
 
 document.addEventListener("keydown", handleDirection);
+
+// 💰 Table des gains selon la couleur
+const gainParCouleur = {
+  "#00FF00": 2,     // vert
+  "#FF3333": 5,     // rouge
+  "#3399FF": 10,    // bleu
+  "#FFD700": 15,    // or
+  "rainbow": 25     // arc-en-ciel
+};
 
 function handleDirection(e) {
   if (gameOver) return;
@@ -31,7 +38,7 @@ function handleDirection(e) {
   else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
 }
 
-// 🎨 FOND EN DAMIER NOIR / MARRON
+// 🎨 FOND DAMIER noir / marron
 function drawGround() {
   for (let x = 0; x < gridCount; x++) {
     for (let y = 0; y < gridCount; y++) {
@@ -79,7 +86,7 @@ function draw() {
   if (direction === "RIGHT") headX += box;
   if (direction === "DOWN") headY += box;
 
-  // ✅ Autoriser la dernière case avant sortie
+  // ✅ On autorise jusqu’à la dernière case (>= width - box)
   if (headX < 0 || headY < 0 || headX > canvas.width - box || headY > canvas.height - box) {
     endGame();
     return;
@@ -88,10 +95,15 @@ function draw() {
   // 🍏 mange une pomme
   if (headX === food.x && headY === food.y) {
     score++;
-    coins += 5;
+
+    // 🪙 gain selon skin équipé
+    const gain = gainParCouleur[equippedColor] || 2;
+    coins += gain;
+
     localStorage.setItem("coins", coins);
     document.getElementById("coins").textContent = coins;
     document.getElementById("score").textContent = score;
+
     food = randomFood();
   } else {
     snake.pop();
@@ -107,17 +119,16 @@ function draw() {
   snake.unshift(newHead);
 }
 
-// 💥 Collision avec le corps
+// 💥 Collision du corps
 function collision(head, array) {
   return array.some(s => s.x === head.x && s.y === head.y);
 }
 
-// 🧨 Fin du jeu sans alerte
+// 🧨 Fin du jeu (overlay + bouton)
 function endGame() {
   gameOver = true;
   clearInterval(game);
 
-  // afficher un overlay semi-transparent
   ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -127,8 +138,7 @@ function endGame() {
   ctx.fillText(`💀 Game Over ! Score : ${score}`, canvas.width / 2, canvas.height / 2);
 
   restartBtn.style.display = "inline-block";
-  restartBtn.style.marginTop = "15px";
 }
 
-// 🔁 Boucle du jeu (ralentie à 120 ms)
+// 🔁 Boucle de jeu (ralentie à 120 ms)
 let game = setInterval(draw, 120);

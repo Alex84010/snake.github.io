@@ -1,35 +1,18 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Snake Game</title>
-  <link rel="stylesheet" href="style.css">
-
-  <style>
-    body {
-      transform: rotate(90deg);
-      transform-origin: left top;
-      width: 100vh;
-      height: 100vw;
-      overflow: hidden;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <h1>🐍 Snake Game</h1>
+  <p class="hud">Score : <span id="score">0</span> | 💰 <span id="coins">0</span></p>
 
-  <p class="hud">
-    Score : <span id="score">0</span> |
-    💰 <span id="coins">0</span>
-  </p>
-
-  <div id="game-container">
+  <div id="game-wrapper">
     <canvas id="game"></canvas>
-    <button id="restart-btn">🔁 Recommencer</button>
+    <div id="rotate-overlay" class="hidden">Tourne ton appareil en paysage ↔️</div>
   </div>
 
   <div class="menu-buttons">

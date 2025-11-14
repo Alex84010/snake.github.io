@@ -1,133 +1,149 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-canvas.width = 420;
-canvas.height = 420;
+let box = 30;
 
-const box = 20;
+// ❗ Canvas auto-adapté au mobile (horizontal)
+function resizeGame() {
+  const size = Math.min(window.innerHeight, window.innerWidth) * 0.85;
+  canvas.width = size;
+  canvas.height = size;
+  box = size / 20;
+}
+resizeGame();
+
+// Data joueur
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+let gainBonus = parseInt(localStorage.getItem("gainBonus")) || 2;
+
+// Skin
+let equippedColor = localStorage.getItem("equippedColor") || "#00FF00";
+
+document.getElementById("coins").textContent = coins;
+
+// Snake
 let snake = [{ x: 10 * box, y: 10 * box }];
 let direction = null;
 
-let score = 0;
-let coins = parseInt(localStorage.getItem("coins")) || 0;
-document.getElementById("coins").textContent = formatNumber(coins);
-
 let food = randomFood();
+let score = 0;
 let gameOver = false;
 
-/* --- FORMATTER (K, M, B, T, Qa...) --- */
-function formatNumber(n) {
-  if (n >= 1e15) return (n/1e15).toFixed(2)+"Qa";
-  if (n >= 1e12) return (n/1e12).toFixed(2)+"T";
-  if (n >= 1e9) return (n/1e9).toFixed(2)+"B";
-  if (n >= 1e6) return (n/1e6).toFixed(2)+"M";
-  if (n >= 1e3) return (n/1e3).toFixed(2)+"K";
-  return n;
-}
+const restartBtn = document.getElementById("restart-btn");
+restartBtn.style.display = "none";
+restartBtn.onclick = () => location.reload();
 
-/* --- SWIPE (mobile + pc) --- */
-let startX=0, startY=0;
-
-canvas.addEventListener("touchstart", e=>{
-  startX=e.touches[0].clientX;
-  startY=e.touches[0].clientY;
-});
-canvas.addEventListener("touchmove", e=>{
-  const dx=e.touches[0].clientX-startX;
-  const dy=e.touches[0].clientY-startY;
-  handleSwipe(dx,dy);
-});
-
-canvas.addEventListener("mousedown", e=>{
-  startX=e.clientX;
-  startY=e.clientY;
-});
-canvas.addEventListener("mousemove", e=>{
-  if (e.buttons!==1) return;
-  const dx=e.clientX-startX;
-  const dy=e.clientY-startY;
-  handleSwipe(dx,dy);
-});
-
-function handleSwipe(dx,dy){
-  if(Math.abs(dx)>Math.abs(dy)){
-    if(dx>20) direction="RIGHT";
-    if(dx<-20) direction="LEFT";
-  } else {
-    if(dy>20) direction="DOWN";
-    if(dy<-20) direction="UP";
-  }
-}
-
-/* --- random food --- */
-function randomFood(){
+// Génère pomme
+function randomFood() {
   return {
-    x: Math.floor(Math.random()* (canvas.width/box)) * box,
-    y: Math.floor(Math.random()* (canvas.height/box)) * box
+    x: Math.floor(Math.random() * 20) * box,
+    y: Math.floor(Math.random() * 20) * box
   };
 }
 
-/* --- DRAW --- */
-function draw(){
-  if(gameOver) return;
+// Déplacements PC
+document.addEventListener("keydown", e => {
+  if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+  if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+  if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+  if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+});
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+// Swipe mobile
+let startX, startY;
 
-  // GEM 🍬 (style Brawl Stars)
-  ctx.fillStyle = "#ff61d4";
-  ctx.shadowColor = "#ff2cc4";
-  ctx.shadowBlur = 15;
-  ctx.beginPath();
-  ctx.roundRect(food.x+4, food.y+4, box-8, box-8, 6);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+canvas.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+});
 
-  // SNAKE ★ Glow cartoon
-  snake.forEach((s,i)=>{
-    ctx.fillStyle = i===0 ? "#00ffcc" : "#00ffaa";
-    ctx.shadowColor = "#00ffc8";
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.roundRect(s.x+2, s.y+2, box-4, box-4, 6);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+canvas.addEventListener("touchend", e => {
+  const dx = e.changedTouches[0].clientX - startX;
+  const dy = e.changedTouches[0].clientY - startY;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx > 0 && direction !== "LEFT") direction = "RIGHT";
+    else if (dx < 0 && direction !== "RIGHT") direction = "LEFT";
+  } else {
+    if (dy > 0 && direction !== "UP") direction = "DOWN";
+    else if (dy < 0 && direction !== "DOWN") direction = "UP";
+  }
+});
+
+// Dessin
+function draw() {
+  if (gameOver) return;
+
+  ctx.fillStyle = "#1a1a1a";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "red";
+  ctx.fillRect(food.x, food.y, box, box);
+
+  // Skins spéciaux
+  snake.forEach((p, i) => {
+    if (equippedColor === "rainbow")
+      ctx.fillStyle = `hsl(${(i * 30) % 360}, 100%, 50%)`;
+    else if (equippedColor === "fire")
+      ctx.fillStyle = `hsl(${20 + i * 8}, 90%, 50%)`;
+    else if (equippedColor === "ice")
+      ctx.fillStyle = `hsl(${180 + i * 5}, 80%, 70%)`;
+    else
+      ctx.fillStyle = equippedColor;
+
+    ctx.fillRect(p.x, p.y, box, box);
   });
 
-  // MOVE
-  let headX = snake[0].x;
-  let headY = snake[0].y;
-  
-  if(direction==="LEFT") headX -= box;
-  if(direction==="RIGHT") headX += box;
-  if(direction==="UP") headY -= box;
-  if(direction==="DOWN") headY += box;
+  // Mouvement
+  let head = { x: snake[0].x, y: snake[0].y };
 
-  // borders
-  if(headX<0 || headY<0 || headX>=canvas.width || headY>=canvas.height){
-    return endGame();
+  if (direction === "LEFT") head.x -= box;
+  if (direction === "RIGHT") head.x += box;
+  if (direction === "UP") head.y -= box;
+  if (direction === "DOWN") head.y += box;
+
+  if (
+    head.x < 0 ||
+    head.y < 0 ||
+    head.x >= canvas.width ||
+    head.y >= canvas.height
+  ) {
+    endGame();
+    return;
   }
 
-  // eat
-  if(headX===food.x && headY===food.y){
+  if (head.x === food.x && head.y === food.y) {
     score++;
-    coins += 1000 + score * 50;
+    coins += gainBonus;
     localStorage.setItem("coins", coins);
-    document.getElementById("coins").textContent = formatNumber(coins);
+    document.getElementById("coins").textContent = coins;
+    document.getElementById("score").textContent = score;
     food = randomFood();
+  } else {
+    snake.pop();
   }
-  else snake.pop();
 
-  const newHead = {x:headX, y:headY};
-  if(snake.some(s=>s.x===newHead.x && s.y===newHead.y)) return endGame();
+  if (snake.some(s => s.x === head.x && s.y === head.y)) {
+    endGame();
+    return;
+  }
 
-  snake.unshift(newHead);
+  snake.unshift(head);
 }
 
-function endGame(){
+function endGame() {
   gameOver = true;
+  clearInterval(loop);
 
-  const btn = document.getElementById("restart-btn");
-  btn.style.display="inline-block";
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "white";
+  ctx.font = "26px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("💀 GAME OVER", canvas.width / 2, canvas.height / 2 - 10);
+
+  restartBtn.style.display = "block";
 }
 
-setInterval(draw,120);
+let loop = setInterval(draw, 120);

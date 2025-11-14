@@ -2,18 +2,102 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Boutique</title>
+  <title>Boutique - Snake</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+  <h1>🛍️ Boutique du Snake</h1>
 
-<h1 class="title">🛍️ Boutique</h1>
-<p>💎 <span id="coins">0</span></p>
+  <p>💰 Tes pièces : <span id="coins">0</span></p>
 
-<div id="shop"></div>
+  <div id="shop"></div>
 
-<button class="btn-shop" onclick="window.location.href='index.html'">← Retour</button>
+  <button onclick="window.location.href='index.html'">🎮 Retour</button>
 
-<script src="shop.js"></script>
+  <script>
+    const items = [
+      { name: "Vert (+2)", color: "#00FF00", price: 0, gain: 2 },
+      { name: "Rouge (+4)", color: "#FF3333", price: 50, gain: 4 },
+      { name: "Bleu (+6)", color: "#3399FF", price: 120, gain: 6 },
+      { name: "Or (+10)", color: "#FFD700", price: 250, gain: 10 },
+      { name: "Rose (+12)", color: "#ff77c8", price: 350, gain: 12 },
+      { name: "Violet (+15)", color: "#a533ff", price: 500, gain: 15 },
+      { name: "Cyan (+17)", color: "#33ffee", price: 700, gain: 17 },
+      { name: "Blanc (+20)", color: "#ffffff", price: 900, gain: 20 },
+      { name: "Noir (+25)", color: "#000000", price: 1200, gain: 25 },
+      { name: "Arc-en-ciel (+30)", color: "rainbow", price: 2000, gain: 30 },
+      { name: "Feu (+35)", color: "fire", price: 3000, gain: 35 },
+      { name: "Glace (+40)", color: "ice", price: 3500, gain: 40 },
+      { name: "Lave (+45)", color: "lava", price: 4000, gain: 45 },
+      { name: "Plasma (+50)", color: "plasma", price: 5000, gain: 50 },
+      { name: "Émeraude (+60)", color: "#00d48c", price: 6500, gain: 60 },
+      { name: "Rubis (+70)", color: "#c4003b", price: 8000, gain: 70 },
+      { name: "Saphir (+80)", color: "#0033ff", price: 9000, gain: 80 },
+      { name: "Galaxie (+90)", color: "galaxy", price: 12000, gain: 90 },
+      { name: "Néon (+100)", color: "neon", price: 15000, gain: 100 },
+      { name: "Divin (+150)", color: "divine", price: 20000, gain: 150 }
+    ];
+
+    let coins = parseInt(localStorage.getItem("coins")) || 0;
+    let owned = JSON.parse(localStorage.getItem("ownedColors")) || ["#00FF00"];
+    let equipped = localStorage.getItem("equippedColor") || "#00FF00";
+
+    const shopDiv = document.getElementById("shop");
+    const coinsSpan = document.getElementById("coins");
+
+    coinsSpan.textContent = coins;
+
+    function renderShop() {
+      shopDiv.innerHTML = "";
+      items.forEach(item => {
+        const el = document.createElement("div");
+        el.className = "shop-item";
+
+        const box = document.createElement("div");
+        box.className = "color-box";
+        box.style.background = item.color === "rainbow"
+          ? "linear-gradient(90deg, red, orange, yellow, green, blue, purple)"
+          : item.color;
+
+        const text = document.createElement("span");
+        text.textContent = item.name + " - " + item.price + "💰";
+
+        const btn = document.createElement("button");
+
+        if (owned.includes(item.color)) {
+          btn.textContent = (equipped === item.color) ? "Équipé ✔" : "Équiper";
+          btn.onclick = () => {
+            equipped = item.color;
+            localStorage.setItem("equippedColor", equipped);
+            localStorage.setItem("gainBonus", item.gain);
+            renderShop();
+          };
+        } else {
+          btn.textContent = "Acheter";
+          btn.onclick = () => {
+            if (coins >= item.price) {
+              coins -= item.price;
+              owned.push(item.color);
+              localStorage.setItem("coins", coins);
+              localStorage.setItem("ownedColors", JSON.stringify(owned));
+              renderShop();
+            } else {
+              alert("Pas assez de pièces !");
+            }
+          };
+        }
+
+        el.appendChild(box);
+        el.appendChild(text);
+        el.appendChild(document.createElement("br"));
+        el.appendChild(btn);
+        shopDiv.appendChild(el);
+      });
+      coinsSpan.textContent = coins;
+    }
+
+    renderShop();
+  </script>
 </body>
 </html>

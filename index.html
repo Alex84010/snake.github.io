@@ -1,23 +1,36 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Snake Game</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Snake Mobile (16:9)</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>🐍 Snake Game</h1>
-  <p class="hud">Score : <span id="score">0</span> | 💰 <span id="coins">0</span></p>
+  <header>
+    <div class="left-info">
+      <div class="hud">Score : <span id="score">0</span></div>
+      <div class="hud small">💰 <span id="coins">0</span></div>
+    </div>
+    <div class="right-buttons">
+      <button id="btn-mute" aria-label="Mute">🔊</button>
+      <button onclick="location.href='shop.html'">🛍️ Boutique</button>
+    </div>
+  </header>
 
-  <div id="game-wrapper">
-    <canvas id="game"></canvas>
-    <div id="rotate-overlay" class="hidden">Tourne ton appareil en paysage ↔️</div>
-  </div>
+  <main id="main">
+    <div id="game-area">
+      <canvas id="game" role="img" aria-label="Jeu Snake mobile"></canvas>
+      <div id="rotate-overlay" class="hidden">Tourne ton appareil en paysage ↔️</div>
+    </div>
 
-  <div class="menu-buttons">
-    <button onclick="window.location.href='shop.html'">🛍️ Boutique</button>
-  </div>
+    <div id="controls-hint">Glisse pour diriger • Jeu optimisé pour mobile (paysage)</div>
+    <button id="restart-btn" class="big-btn hidden">🔁 Recommencer</button>
+  </main>
+
+  <footer>
+    <small>Version mobile • Swipe uniquement</small>
+  </footer>
 
   <script src="script.js"></script>
 </body>

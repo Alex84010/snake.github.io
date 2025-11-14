@@ -2,28 +2,21 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Snake Game</title>
+  <title>Snake Stars</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🐍 Snake Game</h1>
-  <p>Score : <span id="score">0</span> | 💰 <span id="coins">0</span></p>
 
-  <div id="game-container">
-    <canvas id="game"></canvas>
-    <button id="restart-btn">🔁 Recommencer</button>
+  <div id="ui-top">
+    <div class="coins-display">💎 <span id="coins">0</span></div>
+    <button class="btn-shop" onclick="window.location.href='shop.html'">🛍️ Boutique</button>
   </div>
 
-  <div id="touch-controls">
-    <button class="ctrl up">⬆️</button>
-    <div class="middle-btns">
-      <button class="ctrl left">⬅️</button>
-      <button class="ctrl right">➡️</button>
-    </div>
-    <button class="ctrl down">⬇️</button>
-  </div>
+  <h1 class="title">Snake ★ Stars</h1>
 
-  <button onclick="window.location.href='shop.html'">🛍️ Aller à la boutique</button>
+  <canvas id="game"></canvas>
+
+  <button id="restart-btn">Rejouer</button>
 
   <script src="script.js"></script>
 </body>

@@ -1,100 +1,125 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Boutique - Snake</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Boutique - Snake Mobile</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <h1>🛍️ Boutique du Snake</h1>
+  <header>
+    <div class="left-info">
+      <div class="hud">🛍️ Boutique</div>
+      <div class="hud small">💰 <span id="coins-shop">0</span></div>
+    </div>
+    <div class="right-buttons">
+      <button onclick="location.href='index.html'">← Jeu</button>
+    </div>
+  </header>
 
-  <p>💰 Tes pièces : <span id="coins">0</span></p>
+  <main>
+    <div id="shop-list"></div>
+  </main>
 
-  <div id="shop"></div>
-
-  <button onclick="window.location.href='index.html'">🎮 Retour</button>
+  <footer style="padding-bottom:30px"></footer>
 
   <script>
-    const items = [
-      { name: "Vert (+2)", color: "#00FF00", price: 0, gain: 2 },
-      { name: "Rouge (+4)", color: "#FF3333", price: 50, gain: 4 },
-      { name: "Bleu (+6)", color: "#3399FF", price: 120, gain: 6 },
-      { name: "Or (+10)", color: "#FFD700", price: 250, gain: 10 },
-      { name: "Rose (+12)", color: "#ff77c8", price: 350, gain: 12 },
-      { name: "Violet (+15)", color: "#a533ff", price: 500, gain: 15 },
-      { name: "Cyan (+17)", color: "#33ffee", price: 700, gain: 17 },
-      { name: "Blanc (+20)", color: "#ffffff", price: 900, gain: 20 },
-      { name: "Noir (+25)", color: "#000000", price: 1200, gain: 25 },
-      { name: "Arc-en-ciel (+30)", color: "rainbow", price: 2000, gain: 30 },
-      { name: "Feu (+35)", color: "fire", price: 3000, gain: 35 },
-      { name: "Glace (+40)", color: "ice", price: 3500, gain: 40 },
-      { name: "Lave (+45)", color: "lava", price: 4000, gain: 45 },
-      { name: "Plasma (+50)", color: "plasma", price: 5000, gain: 50 },
-      { name: "Émeraude (+60)", color: "#00d48c", price: 6500, gain: 60 },
-      { name: "Rubis (+70)", color: "#c4003b", price: 8000, gain: 70 },
-      { name: "Saphir (+80)", color: "#0033ff", price: 9000, gain: 80 },
-      { name: "Galaxie (+90)", color: "galaxy", price: 12000, gain: 90 },
-      { name: "Néon (+100)", color: "neon", price: 15000, gain: 100 },
-      { name: "Divin (+150)", color: "divine", price: 20000, gain: 150 }
+    // wait until game script loaded (index.html included script) — but shop.html loaded standalone,
+    // we rely on window.SNAKE_GAME if present; else fallback to embedded SKINS copy.
+    const fallbackSKINS = [
+      { id:'s1', name:'Vert', color:'#00FF00', price:0, gain:2},
+      { id:'s2', name:'Rouge', color:'#FF3333', price:60, gain:4},
+      { id:'s3', name:'Bleu', color:'#3399FF', price:120, gain:6},
+      { id:'s4', name:'Or', color:'#FFD700', price:250, gain:10},
+      { id:'s5', name:'Rose', color:'#ff77c8', price:380, gain:12},
+      { id:'s6', name:'Violet', color:'#a533ff', price:520, gain:15},
+      { id:'s7', name:'Cyan', color:'#33ffee', price:750, gain:17},
+      { id:'s8', name:'Blanc', color:'#ffffff', price:950, gain:20},
+      { id:'s9', name:'Noir', color:'#000000', price:1300, gain:25},
+      { id:'s10', name:'Arc', color:'rainbow', price:2100, gain:30},
+      { id:'s11', name:'Feu', color:'fire', price:3100, gain:35},
+      { id:'s12', name:'Glace', color:'ice', price:3600, gain:40},
+      { id:'s13', name:'Lave', color:'lava', price:4200, gain:45},
+      { id:'s14', name:'Plasma', color:'plasma', price:5200, gain:50},
+      { id:'s15', name:'Émeraude', color:'#00d48c', price:6600, gain:60},
+      { id:'s16', name:'Rubis', color:'#c4003b', price:8200, gain:70},
+      { id:'s17', name:'Saphir', color:'#0033ff', price:9300, gain:80},
+      { id:'s18', name:'Galaxie', color:'galaxy', price:12500, gain:90},
+      { id:'s19', name:'Néon', color:'neon', price:15500, gain:100},
+      { id:'s20', name:'Divin', color:'divine', price:21000, gain:150}
     ];
 
-    let coins = parseInt(localStorage.getItem("coins")) || 0;
-    let owned = JSON.parse(localStorage.getItem("ownedColors")) || ["#00FF00"];
-    let equipped = localStorage.getItem("equippedColor") || "#00FF00";
+    const SKINS = (window.SNAKE_GAME && window.SNAKE_GAME.SKINS) ? window.SNAKE_GAME.SKINS : fallbackSKINS;
 
-    const shopDiv = document.getElementById("shop");
-    const coinsSpan = document.getElementById("coins");
-
+    const coinsSpan = document.getElementById('coins-shop');
+    let coins = parseInt(localStorage.getItem('coins')) || 0;
     coinsSpan.textContent = coins;
 
-    function renderShop() {
-      shopDiv.innerHTML = "";
-      items.forEach(item => {
-        const el = document.createElement("div");
-        el.className = "shop-item";
+    let owned = JSON.parse(localStorage.getItem('ownedColors')) || ['#00FF00'];
+    let equipped = localStorage.getItem('equippedColor') || '#00FF00';
 
-        const box = document.createElement("div");
-        box.className = "color-box";
-        box.style.background = item.color === "rainbow"
-          ? "linear-gradient(90deg, red, orange, yellow, green, blue, purple)"
-          : item.color;
+    function colorPreviewStyle(color){
+      if (color === 'rainbow') return 'linear-gradient(90deg, red, orange, yellow, green, blue, purple)';
+      if (color === 'fire') return 'linear-gradient(90deg, #ff4b1f, #ff9068)';
+      if (color === 'ice') return 'linear-gradient(90deg, #aaf0ff, #cfefff)';
+      if (color === 'lava') return 'linear-gradient(90deg, #ff6b6b, #ffb86b)';
+      if (color === 'plasma') return 'linear-gradient(90deg,#7f00ff,#e100ff)';
+      if (color === 'galaxy') return 'linear-gradient(90deg,#3a1c71,#d76d77,#ffaf7b)';
+      if (color === 'neon') return 'linear-gradient(90deg,#00ffea,#66ffb2)';
+      if (color === 'divine') return 'linear-gradient(90deg,#ffd166,#ff7a7a)';
+      return color;
+    }
 
-        const text = document.createElement("span");
-        text.textContent = item.name + " - " + item.price + "💰";
+    function renderShop(){
+      const list = document.getElementById('shop-list');
+      list.innerHTML = '';
+      SKINS.forEach(s=>{
+        const el = document.createElement('div');
+        el.className = 'shop-item';
+        const box = document.createElement('div');
+        box.className = 'color-box';
+        box.style.background = colorPreviewStyle(s.color);
 
-        const btn = document.createElement("button");
+        const text = document.createElement('div');
+        text.style.flex = '1';
+        text.innerHTML = `<strong>${s.name}</strong><br><small>Gain: +${s.gain} • Prix: ${s.price} 💰</small>`;
 
-        if (owned.includes(item.color)) {
-          btn.textContent = (equipped === item.color) ? "Équipé ✔" : "Équiper";
-          btn.onclick = () => {
-            equipped = item.color;
-            localStorage.setItem("equippedColor", equipped);
-            localStorage.setItem("gainBonus", item.gain);
+        const btn = document.createElement('button');
+        btn.className = 'small';
+        if (owned.includes(s.color)) {
+          btn.textContent = (equipped === s.color) ? 'Équipé' : 'Équiper';
+          btn.onclick = ()=>{
+            equipped = s.color;
+            localStorage.setItem('equippedColor', equipped);
+            localStorage.setItem('gainByColor', JSON.stringify(window.SNAKE_GAME ? window.SNAKE_GAME.getGainMap() : {}));
+            alert('Skin équipé !');
             renderShop();
           };
         } else {
-          btn.textContent = "Acheter";
-          btn.onclick = () => {
-            if (coins >= item.price) {
-              coins -= item.price;
-              owned.push(item.color);
-              localStorage.setItem("coins", coins);
-              localStorage.setItem("ownedColors", JSON.stringify(owned));
+          btn.textContent = 'Acheter';
+          btn.onclick = ()=>{
+            coins = parseInt(localStorage.getItem('coins')) || 0;
+            if (coins >= s.price) {
+              coins -= s.price;
+              owned.push(s.color);
+              localStorage.setItem('coins', coins);
+              localStorage.setItem('ownedColors', JSON.stringify(owned));
+              alert('Achat effectué !');
+              coinsSpan.textContent = coins;
               renderShop();
             } else {
-              alert("Pas assez de pièces !");
+              alert('Pas assez de pièces');
             }
           };
         }
 
         el.appendChild(box);
         el.appendChild(text);
-        el.appendChild(document.createElement("br"));
         el.appendChild(btn);
-        shopDiv.appendChild(el);
+        list.appendChild(el);
       });
-      coinsSpan.textContent = coins;
+
+      coinsSpan.textContent = parseInt(localStorage.getItem('coins')) || 0;
     }
 
     renderShop();

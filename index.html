@@ -2,21 +2,39 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Snake Stars</title>
+  <title>Snake Game</title>
   <link rel="stylesheet" href="style.css">
-</head>
-<body>
 
-  <div id="ui-top">
-    <div class="coins-display">💎 <span id="coins">0</span></div>
-    <button class="btn-shop" onclick="window.location.href='shop.html'">🛍️ Boutique</button>
+  <style>
+    body {
+      transform: rotate(90deg);
+      transform-origin: left top;
+      width: 100vh;
+      height: 100vw;
+      overflow: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>🐍 Snake Game</h1>
+
+  <p class="hud">
+    Score : <span id="score">0</span> |
+    💰 <span id="coins">0</span>
+  </p>
+
+  <div id="game-container">
+    <canvas id="game"></canvas>
+    <button id="restart-btn">🔁 Recommencer</button>
   </div>
 
-  <h1 class="title">Snake ★ Stars</h1>
-
-  <canvas id="game"></canvas>
-
-  <button id="restart-btn">Rejouer</button>
+  <div class="menu-buttons">
+    <button onclick="window.location.href='shop.html'">🛍️ Boutique</button>
+  </div>
 
   <script src="script.js"></script>
 </body>

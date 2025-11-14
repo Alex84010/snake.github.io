@@ -1,202 +1,133 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-// Canvas responsive mobile
-function resizeCanvas() {
-  const size = Math.min(window.innerWidth * 0.9, 450);
-  canvas.width = size;
-  canvas.height = size;
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+canvas.width = 420;
+canvas.height = 420;
 
 const box = 20;
-let gridCount;
-
-// Recalcul dynamique
-function updateGrid() {
-  gridCount = Math.floor(canvas.width / box);
-}
-updateGrid();
-
-let snake = [{ x: 9 * box, y: 10 * box }];
+let snake = [{ x: 10 * box, y: 10 * box }];
 let direction = null;
+
 let score = 0;
+let coins = parseInt(localStorage.getItem("coins")) || 0;
+document.getElementById("coins").textContent = formatNumber(coins);
+
+let food = randomFood();
 let gameOver = false;
 
-let coins = parseInt(localStorage.getItem("coins")) || 0;
-document.getElementById("coins").textContent = coins;
-
-// Skins améliorés (gain + style)
-const skins = {
-  "#00FF00": { gain: 2 },
-  "#FF3333": { gain: 5 },
-  "#3399FF": { gain: 10 },
-  "#FFD700": { gain: 15 },
-  "rainbow": { gain: 25 },
-  "purple-glow": { gain: 40 },
-  "ice": { gain: 55 },
-  "fire": { gain: 70 }
-};
-
-let equippedColor = localStorage.getItem("equippedColor") || "#00FF00";
-
-const restartBtn = document.getElementById("restart-btn");
-restartBtn.style.display = "none";
-restartBtn.onclick = () => location.reload();
-
-document.addEventListener("keydown", handleDirection);
-const controls = {
-  up: document.querySelector(".up"),
-  down: document.querySelector(".down"),
-  left: document.querySelector(".left"),
-  right: document.querySelector(".right")
-};
-
-controls.up.onclick = () => setDir("UP");
-controls.down.onclick = () => setDir("DOWN");
-controls.left.onclick = () => setDir("LEFT");
-controls.right.onclick = () => setDir("RIGHT");
-
-function setDir(d) {
-  if (gameOver) return;
-  const opposite = { UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT" };
-  if (direction !== opposite[d]) direction = d;
+/* --- FORMATTER (K, M, B, T, Qa...) --- */
+function formatNumber(n) {
+  if (n >= 1e15) return (n/1e15).toFixed(2)+"Qa";
+  if (n >= 1e12) return (n/1e12).toFixed(2)+"T";
+  if (n >= 1e9) return (n/1e9).toFixed(2)+"B";
+  if (n >= 1e6) return (n/1e6).toFixed(2)+"M";
+  if (n >= 1e3) return (n/1e3).toFixed(2)+"K";
+  return n;
 }
 
-function handleDirection(e) {
-  if (e.key === "ArrowLeft") setDir("LEFT");
-  if (e.key === "ArrowUp") setDir("UP");
-  if (e.key === "ArrowRight") setDir("RIGHT");
-  if (e.key === "ArrowDown") setDir("DOWN");
-}
+/* --- SWIPE (mobile + pc) --- */
+let startX=0, startY=0;
 
-// Swipe mobile
-let startX = 0, startY = 0;
-canvas.addEventListener("touchstart", e => {
-  startX = e.touches[0].clientX;
-  startY = e.touches[0].clientY;
+canvas.addEventListener("touchstart", e=>{
+  startX=e.touches[0].clientX;
+  startY=e.touches[0].clientY;
+});
+canvas.addEventListener("touchmove", e=>{
+  const dx=e.touches[0].clientX-startX;
+  const dy=e.touches[0].clientY-startY;
+  handleSwipe(dx,dy);
 });
 
-canvas.addEventListener("touchmove", e => {
-  const dx = e.touches[0].clientX - startX;
-  const dy = e.touches[0].clientY - startY;
+canvas.addEventListener("mousedown", e=>{
+  startX=e.clientX;
+  startY=e.clientY;
+});
+canvas.addEventListener("mousemove", e=>{
+  if (e.buttons!==1) return;
+  const dx=e.clientX-startX;
+  const dy=e.clientY-startY;
+  handleSwipe(dx,dy);
+});
 
-  if (Math.abs(dx) > Math.abs(dy)) {
-    if (dx > 30) setDir("RIGHT");
-    if (dx < -30) setDir("LEFT");
+function handleSwipe(dx,dy){
+  if(Math.abs(dx)>Math.abs(dy)){
+    if(dx>20) direction="RIGHT";
+    if(dx<-20) direction="LEFT";
   } else {
-    if (dy > 30) setDir("DOWN");
-    if (dy < -30) setDir("UP");
+    if(dy>20) direction="DOWN";
+    if(dy<-20) direction="UP";
   }
-});
+}
 
-function randomFood() {
+/* --- random food --- */
+function randomFood(){
   return {
-    x: Math.floor(Math.random() * gridCount) * box,
-    y: Math.floor(Math.random() * gridCount) * box
+    x: Math.floor(Math.random()* (canvas.width/box)) * box,
+    y: Math.floor(Math.random()* (canvas.height/box)) * box
   };
 }
 
-let food = randomFood();
+/* --- DRAW --- */
+function draw(){
+  if(gameOver) return;
 
-function drawGround() {
-  for (let x = 0; x < gridCount; x++) {
-    for (let y = 0; y < gridCount; y++) {
-      ctx.fillStyle = (x + y) % 2 === 0 ? "#1e1e1e" : "#3c2f1c";
-      ctx.fillRect(x * box, y * box, box, box);
-    }
-  }
-}
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-function drawSnake() {
-  if (equippedColor === "rainbow") {
-    snake.forEach((s, i) => {
-      ctx.fillStyle = `hsl(${(i * 40) % 360}, 100%, 50%)`;
-      ctx.fillRect(s.x, s.y, box, box);
-    });
-  } else if (equippedColor === "purple-glow") {
-    snake.forEach(s => {
-      ctx.shadowColor = "#a020f0";
-      ctx.shadowBlur = 15;
-      ctx.fillStyle = "#a020f0";
-      ctx.fillRect(s.x, s.y, box, box);
-      ctx.shadowBlur = 0;
-    });
-  } else if (equippedColor === "ice") {
-    snake.forEach(s => {
-      ctx.fillStyle = "#a8eaff";
-      ctx.fillRect(s.x, s.y, box, box);
-    });
-  } else if (equippedColor === "fire") {
-    snake.forEach((s, i) => {
-      ctx.fillStyle = `hsl(${20 + i * 5}, 100%, 50%)`;
-      ctx.fillRect(s.x, s.y, box, box);
-    });
-  } else {
-    ctx.fillStyle = equippedColor;
-    snake.forEach(s => ctx.fillRect(s.x, s.y, box, box));
-  }
-}
+  // GEM 🍬 (style Brawl Stars)
+  ctx.fillStyle = "#ff61d4";
+  ctx.shadowColor = "#ff2cc4";
+  ctx.shadowBlur = 15;
+  ctx.beginPath();
+  ctx.roundRect(food.x+4, food.y+4, box-8, box-8, 6);
+  ctx.fill();
+  ctx.shadowBlur = 0;
 
-function draw() {
-  if (gameOver) return;
+  // SNAKE ★ Glow cartoon
+  snake.forEach((s,i)=>{
+    ctx.fillStyle = i===0 ? "#00ffcc" : "#00ffaa";
+    ctx.shadowColor = "#00ffc8";
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.roundRect(s.x+2, s.y+2, box-4, box-4, 6);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
 
-  drawGround();
-
-  ctx.fillStyle = "red";
-  ctx.fillRect(food.x, food.y, box, box);
-
-  drawSnake();
-
+  // MOVE
   let headX = snake[0].x;
   let headY = snake[0].y;
+  
+  if(direction==="LEFT") headX -= box;
+  if(direction==="RIGHT") headX += box;
+  if(direction==="UP") headY -= box;
+  if(direction==="DOWN") headY += box;
 
-  if (direction === "LEFT") headX -= box;
-  if (direction === "UP") headY -= box;
-  if (direction === "RIGHT") headX += box;
-  if (direction === "DOWN") headY += box;
-
-  if (headX < 0 || headY < 0 || headX >= canvas.width || headY >= canvas.height) {
-    endGame();
-    return;
+  // borders
+  if(headX<0 || headY<0 || headX>=canvas.width || headY>=canvas.height){
+    return endGame();
   }
 
-  if (headX === food.x && headY === food.y) {
+  // eat
+  if(headX===food.x && headY===food.y){
     score++;
-    const gain = skins[equippedColor]?.gain || 2;
-    coins += gain;
+    coins += 1000 + score * 50;
     localStorage.setItem("coins", coins);
-    document.getElementById("coins").textContent = coins;
-    document.getElementById("score").textContent = score;
-
+    document.getElementById("coins").textContent = formatNumber(coins);
     food = randomFood();
-  } else snake.pop();
-
-  const newHead = { x: headX, y: headY };
-
-  if (snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
-    endGame();
-    return;
   }
+  else snake.pop();
+
+  const newHead = {x:headX, y:headY};
+  if(snake.some(s=>s.x===newHead.x && s.y===newHead.y)) return endGame();
 
   snake.unshift(newHead);
 }
 
-function endGame() {
+function endGame(){
   gameOver = true;
-  clearInterval(gameLoop);
 
-  ctx.fillStyle = "rgba(0,0,0,0.7)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "#FFD700";
-  ctx.font = "20px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(`💀 Game Over ! Score : ${score}`, canvas.width / 2, canvas.height / 2);
-
-  restartBtn.style.display = "inline-block";
+  const btn = document.getElementById("restart-btn");
+  btn.style.display="inline-block";
 }
 
-let gameLoop = setInterval(draw, 120);
-    
+setInterval(draw,120);

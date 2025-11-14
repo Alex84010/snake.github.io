@@ -13,8 +13,8 @@ h1 {
 
 canvas {
   background-color: #222;
-  margin-top: 20px;
   border: 3px solid #555;
+  touch-action: none;
 }
 
 button {
@@ -26,24 +26,48 @@ button {
   background-color: #04AA6D;
   color: white;
   font-weight: bold;
+  font-size: 16px;
 }
 
 button:hover {
   background-color: #038a57;
 }
 
+/* Boutique */
 .shop-item {
   background-color: #222;
   margin: 10px auto;
-  width: 250px;
+  width: 280px;
   padding: 15px;
   border-radius: 10px;
+  border: 1px solid #444;
 }
 
 .color-box {
-  width: 50px;
-  height: 20px;
+  width: 60px;
+  height: 25px;
   display: inline-block;
-  border: 1px solid #555;
-  margin-right: 10px;
+  border: 2px solid #555;
+  margin-bottom: 10px;
+}
+
+/* Contrôles tactiles */
+#touch-controls {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#touch-controls button {
+  width: 80px;
+  height: 60px;
+  font-size: 20px;
+}
+
+.middle-btns {
+  display: flex;
+  justify-content: space-between;
 }

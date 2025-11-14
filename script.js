@@ -1,44 +1,105 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+// Canvas responsive mobile
+function resizeCanvas() {
+  const size = Math.min(window.innerWidth * 0.9, 450);
+  canvas.width = size;
+  canvas.height = size;
+}
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
 const box = 20;
-const gridCount = canvas.width / box; // 20x20
+let gridCount;
+
+// Recalcul dynamique
+function updateGrid() {
+  gridCount = Math.floor(canvas.width / box);
+}
+updateGrid();
 
 let snake = [{ x: 9 * box, y: 10 * box }];
 let direction = null;
-let food = randomFood();
 let score = 0;
-let coins = parseInt(localStorage.getItem("coins")) || 0;
-let equippedColor = localStorage.getItem("equippedColor") || "#00FF00";
 let gameOver = false;
 
+let coins = parseInt(localStorage.getItem("coins")) || 0;
 document.getElementById("coins").textContent = coins;
 
-// bouton Recommencer
+// Skins améliorés (gain + style)
+const skins = {
+  "#00FF00": { gain: 2 },
+  "#FF3333": { gain: 5 },
+  "#3399FF": { gain: 10 },
+  "#FFD700": { gain: 15 },
+  "rainbow": { gain: 25 },
+  "purple-glow": { gain: 40 },
+  "ice": { gain: 55 },
+  "fire": { gain: 70 }
+};
+
+let equippedColor = localStorage.getItem("equippedColor") || "#00FF00";
+
 const restartBtn = document.getElementById("restart-btn");
 restartBtn.style.display = "none";
 restartBtn.onclick = () => location.reload();
 
 document.addEventListener("keydown", handleDirection);
-
-// 💰 Table des gains selon la couleur
-const gainParCouleur = {
-  "#00FF00": 2,     // vert
-  "#FF3333": 5,     // rouge
-  "#3399FF": 10,    // bleu
-  "#FFD700": 15,    // or
-  "rainbow": 25     // arc-en-ciel
+const controls = {
+  up: document.querySelector(".up"),
+  down: document.querySelector(".down"),
+  left: document.querySelector(".left"),
+  right: document.querySelector(".right")
 };
 
-function handleDirection(e) {
+controls.up.onclick = () => setDir("UP");
+controls.down.onclick = () => setDir("DOWN");
+controls.left.onclick = () => setDir("LEFT");
+controls.right.onclick = () => setDir("RIGHT");
+
+function setDir(d) {
   if (gameOver) return;
-  if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
-  else if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
-  else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
-  else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+  const opposite = { UP: "DOWN", DOWN: "UP", LEFT: "RIGHT", RIGHT: "LEFT" };
+  if (direction !== opposite[d]) direction = d;
 }
 
-// 🎨 FOND DAMIER noir / marron
+function handleDirection(e) {
+  if (e.key === "ArrowLeft") setDir("LEFT");
+  if (e.key === "ArrowUp") setDir("UP");
+  if (e.key === "ArrowRight") setDir("RIGHT");
+  if (e.key === "ArrowDown") setDir("DOWN");
+}
+
+// Swipe mobile
+let startX = 0, startY = 0;
+canvas.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+});
+
+canvas.addEventListener("touchmove", e => {
+  const dx = e.touches[0].clientX - startX;
+  const dy = e.touches[0].clientY - startY;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx > 30) setDir("RIGHT");
+    if (dx < -30) setDir("LEFT");
+  } else {
+    if (dy > 30) setDir("DOWN");
+    if (dy < -30) setDir("UP");
+  }
+});
+
+function randomFood() {
+  return {
+    x: Math.floor(Math.random() * gridCount) * box,
+    y: Math.floor(Math.random() * gridCount) * box
+  };
+}
+
+let food = randomFood();
+
 function drawGround() {
   for (let x = 0; x < gridCount; x++) {
     for (let y = 0; y < gridCount; y++) {
@@ -48,12 +109,34 @@ function drawGround() {
   }
 }
 
-// 🍎 Génère une pomme aléatoirement
-function randomFood() {
-  return {
-    x: Math.floor(Math.random() * gridCount) * box,
-    y: Math.floor(Math.random() * gridCount) * box
-  };
+function drawSnake() {
+  if (equippedColor === "rainbow") {
+    snake.forEach((s, i) => {
+      ctx.fillStyle = `hsl(${(i * 40) % 360}, 100%, 50%)`;
+      ctx.fillRect(s.x, s.y, box, box);
+    });
+  } else if (equippedColor === "purple-glow") {
+    snake.forEach(s => {
+      ctx.shadowColor = "#a020f0";
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = "#a020f0";
+      ctx.fillRect(s.x, s.y, box, box);
+      ctx.shadowBlur = 0;
+    });
+  } else if (equippedColor === "ice") {
+    snake.forEach(s => {
+      ctx.fillStyle = "#a8eaff";
+      ctx.fillRect(s.x, s.y, box, box);
+    });
+  } else if (equippedColor === "fire") {
+    snake.forEach((s, i) => {
+      ctx.fillStyle = `hsl(${20 + i * 5}, 100%, 50%)`;
+      ctx.fillRect(s.x, s.y, box, box);
+    });
+  } else {
+    ctx.fillStyle = equippedColor;
+    snake.forEach(s => ctx.fillRect(s.x, s.y, box, box));
+  }
 }
 
 function draw() {
@@ -61,23 +144,11 @@ function draw() {
 
   drawGround();
 
-  // 🍎 pomme
   ctx.fillStyle = "red";
   ctx.fillRect(food.x, food.y, box, box);
 
-  // 🐍 serpent
-  if (equippedColor === "rainbow") {
-    snake.forEach((segment, i) => {
-      const hue = (i * 40) % 360;
-      ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-      ctx.fillRect(segment.x, segment.y, box, box);
-    });
-  } else {
-    ctx.fillStyle = equippedColor;
-    snake.forEach(segment => ctx.fillRect(segment.x, segment.y, box, box));
-  }
+  drawSnake();
 
-  // mouvement
   let headX = snake[0].x;
   let headY = snake[0].y;
 
@@ -86,32 +157,25 @@ function draw() {
   if (direction === "RIGHT") headX += box;
   if (direction === "DOWN") headY += box;
 
-  // ✅ On autorise jusqu’à la dernière case (>= width - box)
-  if (headX < 0 || headY < 0 || headX > canvas.width - box || headY > canvas.height - box) {
+  if (headX < 0 || headY < 0 || headX >= canvas.width || headY >= canvas.height) {
     endGame();
     return;
   }
 
-  // 🍏 mange une pomme
   if (headX === food.x && headY === food.y) {
     score++;
-
-    // 🪙 gain selon skin équipé
-    const gain = gainParCouleur[equippedColor] || 2;
+    const gain = skins[equippedColor]?.gain || 2;
     coins += gain;
-
     localStorage.setItem("coins", coins);
     document.getElementById("coins").textContent = coins;
     document.getElementById("score").textContent = score;
 
     food = randomFood();
-  } else {
-    snake.pop();
-  }
+  } else snake.pop();
 
   const newHead = { x: headX, y: headY };
 
-  if (collision(newHead, snake)) {
+  if (snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
     endGame();
     return;
   }
@@ -119,26 +183,20 @@ function draw() {
   snake.unshift(newHead);
 }
 
-// 💥 Collision du corps
-function collision(head, array) {
-  return array.some(s => s.x === head.x && s.y === head.y);
-}
-
-// 🧨 Fin du jeu (overlay + bouton)
 function endGame() {
   gameOver = true;
-  clearInterval(game);
+  clearInterval(gameLoop);
 
-  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = "#FFD700";
-  ctx.font = "22px Arial";
+  ctx.font = "20px Arial";
   ctx.textAlign = "center";
   ctx.fillText(`💀 Game Over ! Score : ${score}`, canvas.width / 2, canvas.height / 2);
 
   restartBtn.style.display = "inline-block";
 }
 
-// 🔁 Boucle de jeu (ralentie à 120 ms)
-let game = setInterval(draw, 120);
+let gameLoop = setInterval(draw, 120);
+    

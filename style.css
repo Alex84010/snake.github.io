@@ -1,73 +1,74 @@
+/* --- BACKGROUND GRADIENT ANIMÉ --- */
 body {
-  background-color: #111;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  text-align: center;
   margin: 0;
-  padding: 0;
+  overflow: hidden;
+  font-family: "Poppins", sans-serif;
+  color: #fff;
+  text-align: center;
+  background: linear-gradient(120deg, #2d53ff, #7928fc, #ff2ca8);
+  background-size: 400% 400%;
+  animation: bgMove 12s infinite;
 }
 
-h1 {
-  margin-top: 20px;
+@keyframes bgMove {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
 }
 
-canvas {
-  background-color: #222;
-  border: 3px solid #555;
-  touch-action: none;
+/* --- TITRE --- */
+.title {
+  margin-top: 10px;
+  font-size: 40px;
+  font-weight: 800;
+  text-shadow: 0 0 15px #000;
 }
 
-button {
-  margin: 15px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background-color: #04AA6D;
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-button:hover {
-  background-color: #038a57;
-}
-
-/* Boutique */
-.shop-item {
-  background-color: #222;
-  margin: 10px auto;
-  width: 280px;
-  padding: 15px;
-  border-radius: 10px;
-  border: 1px solid #444;
-}
-
-.color-box {
-  width: 60px;
-  height: 25px;
-  display: inline-block;
-  border: 2px solid #555;
-  margin-bottom: 10px;
-}
-
-/* Contrôles tactiles */
-#touch-controls {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  width: 150px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#touch-controls button {
-  width: 80px;
-  height: 60px;
-  font-size: 20px;
-}
-
-.middle-btns {
+/* --- UI TOP --- */
+#ui-top {
   display: flex;
   justify-content: space-between;
+  padding: 15px;
+}
+
+.coins-display {
+  font-size: 24px;
+  background: rgba(0,0,0,0.23);
+  padding: 10px 20px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
+
+.btn-shop {
+  background: #ffcf33;
+  padding: 12px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px #c99d19;
+}
+.btn-shop:active { transform: translateY(2px); }
+
+/* --- CANVAS --- */
+canvas {
+  background: rgba(0,0,0,0.28);
+  border-radius: 20px;
+  margin-top: 20px;
+  box-shadow: 0 0 20px #000;
+}
+
+/* --- BOUTON RESTART --- */
+#restart-btn {
+  display: none;
+  margin-top: 15px;
+  padding: 12px 30px;
+  font-size: 20px;
+  border: none;
+  background: #00da71;
+  font-weight: 700;
+  border-radius: 12px;
+  box-shadow: 0 4px #009f4d;
+  cursor: pointer;
 }
